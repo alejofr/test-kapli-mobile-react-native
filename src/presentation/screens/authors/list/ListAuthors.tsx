@@ -4,12 +4,13 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../navigation/propsParmsNavigation';
 import { LayoutListAYB, ListItemAYB } from '../../../components/test-kapli';
 import { useFetchQueryApi, Author } from '../../../../shared';
+import { fetchApi } from '../../../../config/kapliTestApi';
 
 
 export const ListAuthors = ({
     navigation
   }:NativeStackScreenProps<RootStackParamList, 'authors'>) => {
-    const { data, isLoading, error } = useFetchQueryApi<Author[]>('/authors');
+    const { data, isLoading, error, onRefresh } = useFetchQueryApi<Author[]>('/authors');
     const [authorId, setAuthorId] = useState<number | undefined>(undefined);
 
     const placeholderList = useMemo(() => {
@@ -22,6 +23,12 @@ export const ListAuthors = ({
       return data || []
 
     }, [isLoading]);
+
+    const removeAuthorList = async(id: number) => {
+      const { ok } = await fetchApi(`/authors/${id}`, 'DELETE');
+
+      if( ok  ) onRefresh();
+    }
 
     return (
       <LayoutListAYB
@@ -40,7 +47,7 @@ export const ListAuthors = ({
               } : null}
               loading={isLoading}
               onEdit={() => author && navigation.navigate('authorForm', { id: author?.author_id })}
-              onDelete={() => author && setAuthorId(author.author_id)}
+              onDelete={() => author && removeAuthorList(author.author_id)}
               onListBooks={() => author && navigation.navigate('books', { author_id: author.author_id })}
             />
           ))
